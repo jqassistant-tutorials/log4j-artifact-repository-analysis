@@ -25,7 +25,7 @@ Two CSV reports are created in the folder `target/jqassistant/report/csv`:
 
 TIP: The reports are created from Cypher queries and implemented as jQAssistant rules which are located in link:jqassistant/log4j-repository-analysis.xml[].
 
-TIP: Incremental scans and analysis are supported. Therefore the data folders containing the database and downloedad Maven artifacts data have been moved from the default folder `target/jqassistant` to `/data`.
+TIP: Incremental scans and analysis are supported. Therefore the folders containing the database and downloaded Maven artifacts data have been moved from the default folder `target/jqassistant` to `data`.
 Depending on the size of the analyzed repository this folder might require large amounts of disk space.
 
 == Known Issues
@@ -38,3 +38,4 @@ java.io.FileNotFoundException: Resource nexus-maven-repository-index.properties 
 +
 TIP: The certificate can be exported directly from a web browser (e.g. as DER encoded-binary X509), the default passwort of the JRE keystore is `changeit`.
 * The project provides an optional setup for spinning up a Neo4j container using `docker-compose up`. Scan and analysis can be configured to use this by either providing the system property `-Dstore.uri=bolt://localhost:7867` on the command line or uncommenting the store-uri section in the pom.xml file.
+
