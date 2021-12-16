@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.buschmais.jqassistant.demo</groupId>
+    <artifactId>nexus-scan</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <repo.filter>*:*:*</repo.filter>
+        <jqassistant.version>1.11.1</jqassistant.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-property</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireProperty>
+                                    <property>repo.url</property>
+                                    <message>You must provide a URL to a Maven repository, e.g. http://host:8080/nexus/content/repositories/my-repo</message>
+                                </requireProperty>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.buschmais.jqassistant</groupId>
+                <artifactId>jqassistant-maven-plugin</artifactId>
+                <version>${jqassistant.version}</version>
+                <executions>
+                    <execution>
+                        <id>cli-default</id>
+                        <goals>
+                            <goal>scan</goal>
+                            <goal>analyze</goal>
+                        </goals>
+                        <configuration>
+                            <!-- allow incremental scan -->
+                            <reset>false</reset>
+                            <executeAppliedConcepts>true</executeAppliedConcepts>
+                            <scanProperties>
+                                <m2repo.filter.includes>${repo.filter}</m2repo.filter.includes>
+                                <!-- store local repository in build directory -->
+                                <m2repo.directory>${project.build.directory}/jqassistant/data/m2repo</m2repo.directory>
+                            </scanProperties>
+                            <scanIncludes>
+                                <scanInclude>
+                                    <url>${repo.url}</url>
+                                    <scope>maven:repository</scope>
+                                </scanInclude>
+                            </scanIncludes>
+                            <groups>
+                                <group>log4j-repository-analysis</group>
+                            </groups>
+                            <!--
+                            <store>
+                                <uri>bolt://localhost:7687</uri>
+                            </store>
+                            -->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
