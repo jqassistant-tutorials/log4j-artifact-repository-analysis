@@ -1,0 +1,54 @@
+<jqassistant-rules xmlns="http://schema.jqassistant.org/rule/v1.11" >
+
+    <group id="log4j-repository-analysis">
+        <includeConcept refId="log4j-repository-analysis:*"/>
+    </group>
+
+    <concept id="log4j-repository-analysis:ArtifactDependencies">
+        <description>Propagates dependencies declared by Pom descriptor to artifacts.</description>
+        <cypher><![CDATA[
+            MATCH
+              (pom:Effective:Pom),
+              (pom)-[:DESCRIBES]->(artifact:Artifact),
+              (pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(dependency:Artifact)
+            MERGE
+              (artifact)-[:DEPENDS_ON]->(dependency)
+            RETURN
+              count(artifact)
+        ]]></cypher>
+    </concept>
+
+    <concept id="log4j-repository-analysis:DirectLog4jDependencies">
+        <description>Reports all Pom descriptors declaring a direct dependency to log4j 2.x.</description>
+        <cypher><![CDATA[
+            MATCH
+              (pom:Pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(log4j:Artifact)
+            WHERE
+              log4j.group="org.apache.logging.log4j"
+            RETURN
+              pom.groupId, pom.artifactId, pom.version, collect(log4j.fqn)
+        ]]></cypher>
+        <report type="csv" />
+    </concept>
+
+    <concept id="log4j-repository-analysis:TransitiveLog4jDependencies">
+        <description>Reports all artifacts having direct or indirect dependencies to log4j 2.x.</description>
+        <cypher><![CDATA[
+            MATCH
+              (log4j:Artifact)
+            WHERE
+              log4j.fqn starts with "org.apache.logging.log4j"
+            WITH
+              log4j
+            MATCH
+              p = shortestPath((artifact:Artifact)-[:DEPENDS_ON*]->(log4j:Artifact))
+            WHERE
+              artifact <> log4j
+              and artifact.type in ["jar","war","ear"]
+            RETURN
+              artifact.group, artifact.name, artifact.type, artifact.version,  [n in nodes(p) | n.fqn] as path
+        ]]></cypher>
+        <report type="csv" />
+    </concept>
+
+</jqassistant-rules>

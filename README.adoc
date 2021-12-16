@@ -1,0 +1,20 @@
+= Log4j - Analysis Of Artifact Repositories
+
+This project provides a setup to scan an artifact repositories like Nexus or Artifactory and identify Maven projects, which declare dependencies to log4j.
+
+NOTE: As a pre-condition the repositories must provide an index. This can be activated in the administration.
+
+----
+mvn verify -Drepo.url=http://host:8080/nexus/content/repositories/my-repo -Drepo.filter=com.my-company.*:*:*"
+----
+
+The property `repo.url` should point to a hosted repository or repository group which contains your artifacts.
+
+The additional(but recommended) property `repo.filter` takes a comma separated list of Maven artifact patterns and allows filtering (usually the groupId of the organization).
+
+The scan will take some time, analysis is executed directly after the scan has finished.
+
+Two CSV reports are created in the folder `target/jqassistant/report/csv`:
+
+* log4j-repository-analysis_DirectLog4jDependencies: The projects declaring a direct dependency to log4j artifacts.
+* log4j-repository-analysis_TransitiveLog4jDependencies: : The projects having a direct or indirect dependency to log4j artifacts.
