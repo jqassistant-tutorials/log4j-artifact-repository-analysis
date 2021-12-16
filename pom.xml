@@ -42,7 +42,7 @@
                 <version>${jqassistant.version}</version>
                 <executions>
                     <execution>
-                        <id>cli-default</id>
+                        <id>default-cli</id>
                         <goals>
                             <goal>scan</goal>
                             <goal>analyze</goal>
@@ -53,8 +53,7 @@
                             <executeAppliedConcepts>true</executeAppliedConcepts>
                             <scanProperties>
                                 <m2repo.filter.includes>${repo.filter}</m2repo.filter.includes>
-                                <!-- store local repository in build directory -->
-                                <m2repo.directory>${project.build.directory}/jqassistant/data/m2repo</m2repo.directory>
+                                <m2repo.directory>${project.basedir}/data/m2repo</m2repo.directory>
                             </scanProperties>
                             <scanIncludes>
                                 <scanInclude>
@@ -65,6 +64,7 @@
                             <groups>
                                 <group>log4j-repository-analysis</group>
                             </groups>
+                            <storeDirectory>${project.basedir}/data/jqassistant/store</storeDirectory>
                             <!--
                             <store>
                                 <uri>bolt://localhost:7687</uri>

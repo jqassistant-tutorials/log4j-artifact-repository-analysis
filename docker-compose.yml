@@ -10,7 +10,7 @@ services:
       - NEO4J_AUTH=none
 #     - NEO4JLABS_PLUGINS=["apoc"]
     volumes:
-      - ./target/jqassistant/store:/data/databases/graph.db
+      - ./data/jqassistant/store:/data/databases/graph.db
   jupyter:
     image: jqassistant/jupyter-notebook:1.10.0
     ports:

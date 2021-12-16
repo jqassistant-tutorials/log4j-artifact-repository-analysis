@@ -1,8 +1,12 @@
 = Log4j - Analysis Of Artifact Repositories
 
+== Overview
+
 This project provides a setup to scan an artifact repositories like Nexus or Artifactory and identify Maven projects, which declare dependencies to log4j.
 
-NOTE: As a pre-condition the repositories must provide an index. This can be activated in the administration.
+== How To Use It
+
+NOTE: As a pre-condition the repositories must provide an index. This can be activated in the administration of the repository manager.
 
 ----
 mvn verify -Drepo.url=http://host:8080/nexus/content/repositories/my-repo -Drepo.filter=com.my-company.*:*:*"
@@ -18,3 +22,16 @@ Two CSV reports are created in the folder `target/jqassistant/report/csv`:
 
 * log4j-repository-analysis_DirectLog4jDependencies: The projects declaring a direct dependency to log4j artifacts.
 * log4j-repository-analysis_TransitiveLog4jDependencies: : The projects having a direct or indirect dependency to log4j artifacts.
+
+TIP: The reports are created from Cypher queries and implemented as jQAssistant rules which are located in link:jqassistant/log4j-repository-analysis.xml[].
+
+== Known Issues
+
+* Depending on the size of the repository the scan will take time (to be counted in hours), the executed queries are expensive as well. If an OutOfMemoryError is reported during analysis then the heap size for Maven should be set using the environment variable `MAVEN_OPTS=-Xmx16G`.
+* If the scan aborts right after startup with a message `[WARNING] Cannot scan item https://...
+java.io.FileNotFoundException: Resource nexus-maven-repository-index.properties does not exist` then there's no index available for the repository.
+* In case the repository requires user authentication the credentials can be passed within the URL, e.g. `-Drepo.url=http://user:password@host:8080/nexus/content/repositories/my-repo`
+* In case of HTTPS URLs using self-signed certificates it will be necessary to import the certificate into the keystore of the used Java Runtime Environment (not verified): `$JAVA_HOME/bin/keytool -import -alias NEXUS -file nexus.crt -keystore $JAVA_HOME/lib/security/cacerts`
++
+TIP: The certificate can be exported directly from a web browser (e.g. as DER encoded-binary X509), the default passwort of the JRE keystore is `changeit`.
+* The project provides an optional setup for spinning up a Neo4j container using `docker-compose up`. Scan and analysis can be configured to use this by either providing the system property `-Dstore.uri=bolt://localhost:7867` on the command line or uncommenting the store-uri section in the pom.xml file.
