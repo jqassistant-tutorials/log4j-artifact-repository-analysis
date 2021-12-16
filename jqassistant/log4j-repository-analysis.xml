@@ -32,6 +32,7 @@
     </concept>
 
     <concept id="log4j-repository-analysis:TransitiveLog4jDependencies">
+        <requiresConcept refId="log4j-repository-analysis:ArtifactDependencies"/>
         <description>Reports all artifacts having direct or indirect dependencies to log4j 2.x.</description>
         <cypher><![CDATA[
             MATCH
