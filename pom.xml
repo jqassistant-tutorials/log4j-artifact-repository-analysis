@@ -28,7 +28,7 @@
                             <rules>
                                 <requireProperty>
                                     <property>repo.url</property>
-                                    <message>You must provide a URL to a Maven repository, e.g. http://host:8080/nexus/content/repositories/my-repo</message>
+                                    <message>You must provide a URL to a Maven repository, e.g. http://host:8080/nexus/content/repositories/my-repo (index must be available!)</message>
                                 </requireProperty>
                             </rules>
                             <fail>true</fail>
@@ -48,7 +48,7 @@
                             <goal>analyze</goal>
                         </goals>
                         <configuration>
-                            <!-- allow incremental scan -->
+                            <!-- allow incremental scan & analysis -->
                             <reset>false</reset>
                             <executeAppliedConcepts>true</executeAppliedConcepts>
                             <scanProperties>
