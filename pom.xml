@@ -73,6 +73,13 @@
                         </configuration>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jqassistant.contrib.plugin</groupId>
+                        <artifactId>jqassistant-apoc-plugin</artifactId>
+                        <version>1.10.0</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

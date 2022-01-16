@@ -5,19 +5,29 @@
     </group>
 
     <concept id="log4j-repository-analysis:ArtifactDependencies">
-        <description>Propagates dependencies declared by Pom descriptor to artifacts.</description>
+        <description>Propagates dependencies declared by POM descriptors to artifacts.</description>
         <cypher><![CDATA[
-            MATCH
-              (pom:Effective:Pom),
-              (pom)-[:DESCRIBES]->(artifact:Artifact),
-              (pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(dependency:Artifact)
-            WHERE
-              artifact.type in ["jar","war","ear"]
-            MERGE
-              (artifact)-[:DEPENDS_ON]->(dependency)
-            RETURN
-              count(artifact)
+            call apoc.periodic.iterate(
+                "MATCH
+                   (pom:Effective:Pom),
+                   (pom)-[:DESCRIBES]->(artifact:Artifact),
+                   (pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(dependency:Artifact)
+                 WHERE
+                   artifact.type in $artifactTypes
+                 RETURN
+                   artifact, dependency",
+                "MERGE (artifact)-[:DEPENDS_ON]->(dependency)",
+                {
+                  params: {
+                    artifactTypes: ["jar","war","ear"]
+                  }
+                })
+            YIELD
+              total
         ]]></cypher>
+        <verify>
+            <aggregation />
+        </verify>
     </concept>
 
     <concept id="log4j-repository-analysis:DirectLog4jDependencies">
