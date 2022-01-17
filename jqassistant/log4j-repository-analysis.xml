@@ -8,20 +8,20 @@
         <description>Propagates dependencies declared by POM descriptors to artifacts.</description>
         <cypher><![CDATA[
             call apoc.periodic.iterate(
-                "MATCH
-                   (pom:Effective:Pom),
-                   (pom)-[:DESCRIBES]->(artifact:Artifact),
-                   (pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(dependency:Artifact)
-                 WHERE
-                   artifact.type in $artifactTypes
-                 RETURN
-                   artifact, dependency",
-                "MERGE (artifact)-[:DEPENDS_ON]->(dependency)",
-                {
-                  params: {
-                    artifactTypes: ["jar","war","ear"]
-                  }
-                })
+              "MATCH
+                 (pom:Effective:Pom),
+                 (pom)-[:DESCRIBES]->(artifact:Artifact),
+                 (pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(dependency:Artifact)
+               WHERE
+                 artifact.type in $artifactTypes
+               RETURN
+                 artifact, dependency",
+              "MERGE (artifact)-[:DEPENDS_ON]->(dependency)",
+              {
+                params: {
+                  artifactTypes: ["jar","war","ear"]
+                }
+              })
             YIELD
               total
         ]]></cypher>
@@ -34,12 +34,13 @@
         <description>Reports all Pom descriptors declaring a direct dependency to log4j 2.x.</description>
         <cypher><![CDATA[
             MATCH
-              (pom:Pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(log4j:Artifact)
-            WHERE
-              log4j.group="org.apache.logging.log4j"
+              (:Repository)-[:CONTAINS_POM]->(pom:Pom),
+              (pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(log4j:Artifact)
+             WHERE
+               log4j.group = "org.apache.logging.log4j"
             RETURN
-              pom.groupId as GroupId, pom.artifactId as ArtifactId, pom.version as Version, collect(log4j.fqn) as Log4jDependencies
-        ]]></cypher>
+                pom.groupId as GroupId, pom.artifactId as ArtifactId, pom.version as Version, collect(log4j.fqn) as Log4jDependencies
+            ]]></cypher>
         <report type="csv" />
     </concept>
 
@@ -48,16 +49,16 @@
         <description>Reports all artifacts having direct or indirect dependencies to log4j 2.x.</description>
         <cypher><![CDATA[
             MATCH
-              (log4j:Artifact)
+              (:Repository)-[:CONTAINS_ARTIFACT]->(artifact:Artifact)
             WHERE
-              log4j.fqn starts with "org.apache.logging.log4j"
+              artifact.type in ["jar","war","ear"]
             WITH
-              log4j
+              artifact
             MATCH
               p = shortestPath((artifact:Artifact)-[:DEPENDS_ON*]->(log4j:Artifact))
             WHERE
-              artifact <> log4j
-              and artifact.type in ["jar","war","ear"]
+              log4j.fqn starts with "org.apache.logging.log4j"
+              and  artifact <> log4j
             RETURN
               artifact.group as GroupId, artifact.name as ArtifactId, artifact.type as Type, artifact.version as Version,  [n in nodes(p) | n.fqn] as DependencyPathToLog4j
         ]]></cypher>
