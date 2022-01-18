@@ -23,7 +23,7 @@
                 }
               })
             YIELD
-              total
+              total as `Artifact Dependencies`
         ]]></cypher>
         <verify>
             <aggregation />
@@ -31,37 +31,57 @@
     </concept>
 
     <concept id="log4j-repository-analysis:DirectLog4jDependencies">
-        <description>Reports all Pom descriptors declaring a direct dependency to log4j 2.x.</description>
+        <description>Reports all POM descriptors declaring a direct dependency to any Log4j 2.x artifact.</description>
         <cypher><![CDATA[
             MATCH
               (:Repository)-[:CONTAINS_POM]->(pom:Pom),
               (pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(log4j:Artifact)
-             WHERE
-               log4j.group = "org.apache.logging.log4j"
+            WHERE
+              log4j.group = "org.apache.logging.log4j"
             RETURN
-                pom.groupId as GroupId, pom.artifactId as ArtifactId, pom.version as Version, collect(log4j.fqn) as Log4jDependencies
+              pom.fqn as POM, collect(log4j.fqn) as `Declared Log4j dependencies`
             ]]></cypher>
         <report type="csv" />
     </concept>
 
-    <concept id="log4j-repository-analysis:TransitiveLog4jDependencies">
-        <requiresConcept refId="log4j-repository-analysis:ArtifactDependencies"/>
-        <description>Reports all artifacts having direct or indirect dependencies to log4j 2.x.</description>
+    <concept id="log4j-repository-analysis:DeployableArtifact">
+        <description>Label artifacts of type WAR, EAR and Spring Boot fat JARs as "Deployable".</description>
         <cypher><![CDATA[
             MATCH
-              (:Repository)-[:CONTAINS_ARTIFACT]->(artifact:Artifact)
+              (:Repository)-[:CONTAINS_ARTIFACT]->(deployable:Artifact)
             WHERE
-              artifact.type in ["jar","war","ear"]
-            WITH
-              artifact
-            MATCH
-              p = shortestPath((artifact:Artifact)-[:DEPENDS_ON*]->(log4j:Artifact))
-            WHERE
-              log4j.fqn starts with "org.apache.logging.log4j"
-              and  artifact <> log4j
+              (
+                deployable.type in ["war","ear"]
+                or (deployable)<-[:DESCRIBES]-(:Pom)-[:USES_PLUGIN]->(:Plugin)-[:IS_ARTIFACT]->(:Artifact{name:"spring-boot-maven-plugin"})
+              )
+              and not exists(deployable.classifier)
+            SET
+              deployable:Deployable
             RETURN
-              artifact.group as GroupId, artifact.name as ArtifactId, artifact.type as Type, artifact.version as Version,  [n in nodes(p) | n.fqn] as DependencyPathToLog4j
-        ]]></cypher>
+              deployable.fqn as Deployable
+            ]]></cypher>
+    </concept>
+
+    <concept id="log4j-repository-analysis:TransitiveLog4jDependencies">
+        <requiresConcept refId="log4j-repository-analysis:DeployableArtifact"/>
+        <requiresConcept refId="log4j-repository-analysis:ArtifactDependencies"/>
+        <description>Reports deployable artifacts having direct or indirect dependencies to Log4j core 2.x.</description>
+        <cypher><![CDATA[
+            MATCH
+              (deployable:Deployable)
+// Uncomment if you want to restrict to deployable artifacts younger than a given timestamp
+//          WHERE
+//            deployable.lastModified > datetime('2021-01-01T00:00:00Z').epochMillis
+            WITH
+              deployable
+            MATCH
+              p = shortestPath((deployable)-[:DEPENDS_ON*]->(log4j:Artifact))
+            WHERE
+              deployable <> log4j
+              and log4j.fqn STARTS WITH 'org.apache.logging.log4j:log4j-core:'
+            RETURN
+              deployable.fqn as Deployable, collect(DISTINCT log4j.version) as `Log4j dependencies`
+            ]]></cypher>
         <report type="csv" />
     </concept>
 

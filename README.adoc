@@ -20,8 +20,8 @@ The scan will take some time, analysis is executed directly after the scan has f
 
 Two CSV reports are created in the folder `target/jqassistant/report/csv`:
 
-* `log4j-repository-analysis_DirectLog4jDependencies`: The projects declaring a direct dependency to log4j artifacts.
-* `log4j-repository-analysis_TransitiveLog4jDependencies`: The projects having a direct or indirect dependency to log4j artifacts.
+* `log4j-repository-analysis_DirectLog4jDependencies`: Projects declaring a direct dependency to log4j artifacts.
+* `log4j-repository-analysis_TransitiveLog4jDependencies`: Deployable artifacts (WAR, EAR and Spring Boot fat JARs) having a direct or indirect dependency to log4j core 2.x.
 
 TIP: The reports are created from Cypher queries and implemented as jQAssistant rules which are located in link:jqassistant/log4j-repository-analysis.xml[].
 
@@ -39,5 +39,5 @@ The presence of an index can be verified by checking existence of a folder named
 * For repository URLs using HTTPS and self-signed certificates it will be necessary to import the certificate into the keystore of the used Java Runtime Environment (not verified): `$JAVA_HOME/bin/keytool -import -alias NEXUS -file nexus.crt -keystore $JAVA_HOME/lib/security/cacerts`
 +
 TIP: The certificate can be exported directly from a web browser (e.g. as DER encoded-binary X509), the default passwort of the JRE keystore is `changeit`.
-* The project provides an optional setup for spinning up a Neo4j container using `docker-compose up`. Scan and analysis can be configured to use this by either providing the system property `-Dstore.uri=bolt://localhost:7867` on the command line or uncommenting the store-uri section in the pom.xml file.
+* The project provides an optional setup for spinning up a Neo4j container using `docker-compose up`. Scan and analysis can be configured to use this by either providing the system property `-Dstore.uri=bolt://localhost:7867` on the command line or uncommenting the store-uri section in the file `pom.xml`.
 
