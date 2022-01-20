@@ -80,7 +80,9 @@
               deployable <> log4j
               and log4j.fqn STARTS WITH 'org.apache.logging.log4j:log4j-core:'
             RETURN
-              deployable.fqn as Deployable, collect(DISTINCT log4j.version) as `Log4j dependencies`
+              deployable.fqn as Deployable, datetime({epochMillis:deployable.lastModified}) as `Last Modified` , collect(DISTINCT log4j.version) as `Log4j dependencies`
+            ORDER BY
+              `Last Modified`
             ]]></cypher>
         <report type="csv" />
     </concept>
