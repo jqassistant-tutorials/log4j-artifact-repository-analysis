@@ -37,7 +37,7 @@
               (:Repository)-[:CONTAINS_POM]->(pom:Pom),
               (pom)-[:DECLARES_DEPENDENCY]->()-[:TO_ARTIFACT]->(log4j:Artifact)
             WHERE
-              log4j.group = "org.apache.logging.log4j"
+              log4j.fqn STARTS WITH "org.apache.logging.log4j"
             RETURN
               pom.fqn as POM, collect(log4j.fqn) as `Declared Log4j dependencies`
             ]]></cypher>
@@ -45,14 +45,18 @@
     </concept>
 
     <concept id="log4j-repository-analysis:DeployableArtifact">
-        <description>Label artifacts of type WAR, EAR and Spring Boot fat JARs as "Deployable".</description>
+        <description>Label artifacts of type WAR, EAR, Spring Boot fat JARs and JARs with a main class declaration as "Deployable".</description>
         <cypher><![CDATA[
             MATCH
               (:Repository)-[:CONTAINS_ARTIFACT]->(deployable:Artifact)
             WHERE
               (
+                // WAR and EAR files
                 deployable.type in ["war","ear"]
+                // Spring Boot fat JARs
                 or (deployable)<-[:DESCRIBES]-(:Pom)-[:USES_PLUGIN]->(:Plugin)-[:IS_ARTIFACT]->(:Artifact{name:"spring-boot-maven-plugin"})
+                // Any JAR containing a main class declaration
+                or (deployable)<-[:DESCRIBES]-(:Pom)-[:USES_PLUGIN]->(:Plugin)-[:HAS_EXECUTION|:HAS_CONFIGURATION*]->(:Configuration)-[:CONTAINS]->(:Value{name:"archive"})-[:CONTAINS]->(:Value{name:"manifest"})-[:CONTAINS]->(:Value{name:"mainClass"})
               )
               and not exists(deployable.classifier)
             SET
@@ -80,7 +84,9 @@
               deployable <> log4j
               and log4j.fqn STARTS WITH 'org.apache.logging.log4j:log4j-core:'
             RETURN
-              deployable.fqn as Deployable, datetime({epochMillis:deployable.lastModified}) as `Last Modified` , collect(DISTINCT log4j.version) as `Log4j dependencies`
+              deployable.fqn as Deployable,
+              case exists(deployable.lastModified) when true then datetime({epochMillis:deployable.lastModified}) else "" end as `Last Modified`,
+              collect(DISTINCT log4j.version) as `Log4j dependencies`
             ORDER BY
               `Last Modified`
             ]]></cypher>

@@ -20,8 +20,8 @@ The scan will take some time, analysis is executed directly after the scan has f
 
 Two CSV reports are created in the folder `target/jqassistant/report/csv`:
 
-* `log4j-repository-analysis_DirectLog4jDependencies`: Projects declaring a direct dependency to log4j artifacts.
-* `log4j-repository-analysis_TransitiveLog4jDependencies`: Deployable artifacts (WAR, EAR and Spring Boot fat JARs) having a direct or indirect dependency to log4j core 2.x.
+* `log4j-repository-analysis_DirectLog4jDependencies`: Projects declaring a direct dependency to Log4j artifacts.
+* `log4j-repository-analysis_TransitiveLog4jDependencies`: Deployable artifacts (WAR, EAR, Spring Boot fat JAR and JAR files with a main class declaration) having a direct or indirect dependency to Log4j core 2.x.
 
 TIP: The reports are created from Cypher queries and implemented as jQAssistant rules which are located in link:jqassistant/log4j-repository-analysis.xml[].
 
