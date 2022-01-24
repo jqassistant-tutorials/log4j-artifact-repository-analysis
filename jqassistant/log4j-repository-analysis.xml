@@ -84,7 +84,9 @@
               deployable <> log4j
               and log4j.fqn STARTS WITH 'org.apache.logging.log4j:log4j-core:'
             RETURN
-              deployable.fqn as Deployable, datetime({epochMillis:coalesce(deployable.lastModified, 0)}) as `Last Modified` , collect(DISTINCT log4j.version) as `Log4j dependencies`
+              deployable.fqn as Deployable,
+              case exists(deployable.lastModified) when true then datetime({epochMillis:deployable.lastModified}) else "" end as `Last Modified`,
+              collect(DISTINCT log4j.version) as `Log4j dependencies`
             ORDER BY
               `Last Modified`
             ]]></cypher>
